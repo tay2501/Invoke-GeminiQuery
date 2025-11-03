@@ -36,7 +36,9 @@ class BrowserType(Enum):
     """Supported browser types"""
     FIREFOX = "firefox"
     CHROME = "chrome"
+    CHROME_GOOGLE = "google-chrome"
     EDGE = "edge"
+    EDGE_MS = "msedge"
     SAFARI = "safari"
     SYSTEM_DEFAULT = "system_default"
 
