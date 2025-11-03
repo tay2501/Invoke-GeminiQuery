@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Parameter Test - Gemini Auto Query</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            line-height: 1.6;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-section {
+            background-color: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success { background-color: #d4edda; border-left-color: #28a745; }
+        .warning { background-color: #fff3cd; border-left-color: #ffc107; }
+        .error { background-color: #f8d7da; border-left-color: #dc3545; }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .test-button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .test-button:hover {
+            background-color: #2980b9;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .status-warning { background-color: #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 URL Parameter Test</h1>
+        
+        <div class="info-section">
+            <h3>📋 Test Purpose</h3>
+            <p>This page helps test and debug the URL parameter detection functionality of the Gemini Auto Input Greasemonkey script.</p>
+        </div>
+
+        <div class="info-section">
+            <h3>🌐 Current URL Information</h3>
+            <div class="code-block" id="url-info"></div>
+        </div>
+
+        <div class="info-section">
+            <h3>📊 URL Parameters</h3>
+            <div class="code-block" id="params-info"></div>
+        </div>
+
+        <div class="info-section" id="script-status">
+            <h3>🔧 Greasemonkey Script Status</h3>
+            <div id="script-test"></div>
+        </div>
+
+        <div class="info-section">
+            <h3>🧪 Test Actions</h3>
+            <button class="test-button" onclick="testWithPrompt()">Test with Sample Prompt</button>
+            <button class="test-button" onclick="testDebugInterface()">Test Debug Interface</button>
+            <button class="test-button" onclick="reloadWithPrompt()">Reload with Test Parameter</button>
+        </div>
+
+        <div class="info-section">
+            <h3>📝 Usage Instructions</h3>
+            <p><strong>To test the Greasemonkey script:</strong></p>
+            <ol>
+                <li>Ensure the <code>gemini_auto_input.user.js</code> script is installed in Tampermonkey/Greasemonkey</li>
+                <li>Add <code>?prompt=your_test_question</code> to this page's URL</li>
+                <li>Check the script status section above</li>
+                <li>Open browser console to see detailed logs</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            updateURLInfo();
+            updateParameterInfo();
+            updateScriptStatus();
+        });
+
+        function updateURLInfo() {
+            const urlInfo = document.getElementById('url-info');
+            urlInfo.textContent = 
+                `Full URL: ${window.location.href}\n` +
+                `Protocol: ${window.location.protocol}\n` +
+                `Host: ${window.location.host}\n` +
+                `Pathname: ${window.location.pathname}\n` +
+                `Search: ${window.location.search}\n` +
+                `Hash: ${window.location.hash}`;
+        }
+
+        function updateParameterInfo() {
+            const paramsInfo = document.getElementById('params-info');
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            let paramsText = '';
+            
+            if (urlParams.toString()) {
+                paramsText += 'Detected Parameters:\n';
+                for (const [key, value] of urlParams.entries()) {
+                    paramsText += `  ${key}: ${value}\n`;
+                }
+                
+                // Check for prompt-related parameters
+                const promptParams = ['prompt', 'q', 'data', 'text'];
+                const foundPrompts = promptParams.filter(param => urlParams.has(param));
+                
+                if (foundPrompts.length > 0) {
+                    paramsText += '\nPrompt Parameters Found:\n';
+                    foundPrompts.forEach(param => {
+                        paramsText += `  ${param}: ${urlParams.get(param)}\n`;
+                    });
+                }
+            } else {
+                paramsText = 'No URL parameters found.\n\nTo test, add ?prompt=your_question to the URL';
+            }
+            
+            paramsInfo.textContent = paramsText;
+        }
+
+        function updateScriptStatus() {
+            const scriptTest = document.getElementById('script-test');
+            const scriptStatus = document.getElementById('script-status');
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            let statusHTML = '';
+            let hasPrompt = false;
+            let hasScript = false;
+            
+            // Check for prompt parameter
+            const promptParam = urlParams.get('prompt') || urlParams.get('q') || urlParams.get('data');
+            if (promptParam) {
+                statusHTML += `<div><span class="status-indicator status-success"></span>Prompt parameter detected: "${promptParam}"</div>`;
+                hasPrompt = true;
+            } else {
+                statusHTML += `<div><span class="status-indicator status-error"></span>No prompt parameter found</div>`;
+            }
+            
+            // Check for Greasemonkey script
+            if (typeof window.geminiDebug !== 'undefined') {
+                statusHTML += `<div><span class="status-indicator status-success"></span>Greasemonkey script loaded</div>`;
+                statusHTML += `<div><span class="status-indicator status-success"></span>Debug interface available</div>`;
+                hasScript = true;
+            } else {
+                statusHTML += `<div><span class="status-indicator status-error"></span>Greasemonkey script not detected</div>`;
+                statusHTML += `<div><span class="status-indicator status-warning"></span>Install gemini_auto_input.user.js in Tampermonkey</div>`;
+            }
+            
+            scriptTest.innerHTML = statusHTML;
+            
+            // Update section styling based on status
+            if (hasPrompt && hasScript) {
+                scriptStatus.className = 'info-section success';
+            } else if (hasPrompt || hasScript) {
+                scriptStatus.className = 'info-section warning';
+            } else {
+                scriptStatus.className = 'info-section error';
+            }
+        }
+
+        function testWithPrompt() {
+            if (typeof window.geminiDebug !== 'undefined') {
+                const testPrompt = 'This is a test prompt from the URL parameter test page';
+                window.geminiDebug.test(testPrompt);
+                alert('Test executed! Check browser console for logs.');
+            } else {
+                alert('Greasemonkey script not detected. Please install gemini_auto_input.user.js');
+            }
+        }
+
+        function testDebugInterface() {
+            if (typeof window.geminiDebug !== 'undefined') {
+                window.geminiDebug.help();
+                alert('Debug help displayed in console!');
+            } else {
+                alert('Debug interface not available. Install the Greasemonkey script first.');
+            }
+        }
+
+        function reloadWithPrompt() {
+            const testPrompt = 'URL parameter test question';
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('prompt', testPrompt);
+            window.location.href = newUrl.toString();
+        }
+
+        // Console logging for debugging
+        console.log('=== URL Parameter Test Page ===');
+        console.log('Current URL:', window.location.href);
+        console.log('Search params:', window.location.search);
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        console.log('Prompt parameter:', urlParams.get('prompt'));
+        console.log('Greasemonkey script:', typeof window.geminiDebug !== 'undefined' ? 'Detected' : 'Not found');
+        
+        if (typeof window.geminiDebug !== 'undefined') {
+            console.log('Debug interface version:', window.geminiDebug.version);
+        }
+    </script>
+</body>
+</html>

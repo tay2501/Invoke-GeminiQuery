@@ -1,0 +1,227 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Integration tests for Gemini Auto Query.
+
+Tests the complete application workflow and component integration.
+"""
+
+import sys
+import unittest
+from unittest.mock import patch, MagicMock
+from pathlib import Path
+
+# Add src directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+# Note: GeminiQueryCLI moved to modern Typer-based CLI
+# from gemini_query.cli.main import app
+from gemini_query.config import AppConfig
+
+
+class TestIntegration(unittest.TestCase):
+    """Test complete application integration"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        self.config = AppConfig(
+            gemini_url="https://test.example.com",
+            max_prompt_length=100,
+            browser_timeout=5
+        )
+        self.cli = GeminiQueryCLI(self.config)
+    
+    @patch.object(GeminiQueryCLI, '_show_help')
+    def test_run_no_input(self, mock_help):
+        """Test CLI run with no input"""
+        args = ["script.py"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+        mock_help.assert_called_once()
+    
+    @patch('gemini_query.browser.BrowserManager.launch')
+    @patch('sys.stdin.isatty', return_value=True)
+    def test_run_successful_launch(self, mock_isatty, mock_launch):
+        """Test successful CLI run with browser launch"""
+        mock_launch.return_value = True
+        args = ["script.py", "Test", "question"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 0)
+        mock_launch.assert_called_once()
+        
+        # Verify URL was generated correctly
+        call_args = mock_launch.call_args[0][0]
+        self.assertIn("https://test.example.com", call_args)
+        self.assertIn("prompt=", call_args)
+    
+    @patch('gemini_query.browser.BrowserManager.launch')
+    @patch('gemini_query.browser.BrowserManager.show_error_message')
+    @patch('sys.stdin.isatty', return_value=True)
+    def test_run_failed_launch(self, mock_isatty, mock_error, mock_launch):
+        """Test CLI run with failed browser launch"""
+        mock_launch.return_value = False
+        args = ["script.py", "Test", "question"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+        mock_launch.assert_called_once()
+        mock_error.assert_called_once()
+    
+    @patch('sys.stdin.isatty', return_value=False)
+    @patch('sys.stdin.read', return_value="piped content")
+    @patch('gemini_query.browser.BrowserManager.launch')
+    def test_run_with_piped_input(self, mock_launch, mock_read, mock_isatty):
+        """Test CLI run with piped input"""
+        mock_launch.return_value = True
+        args = ["script.py", "Question:"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 0)
+        
+        # Verify combined input was processed
+        call_args = mock_launch.call_args[0][0]
+        self.assertIn("Question", call_args)
+        self.assertIn("piped%20content", call_args)
+    
+    @patch('gemini_query.url_generator.URLGenerator.create_url')
+    def test_run_url_generation_error(self, mock_create_url):
+        """Test CLI run with URL generation error"""
+        mock_create_url.side_effect = ValueError("Invalid prompt")
+        args = ["script.py", "test"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+    
+    def test_run_unexpected_error(self):
+        """Test CLI run with unexpected error"""
+        # Simulate unexpected error by corrupting the CLI object
+        self.cli.input_processor = None
+        args = ["script.py", "test"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+    
+    @patch('sys.stdin.isatty', return_value=True)
+    @patch('gemini_query.browser.BrowserManager.launch')
+    def test_run_prompt_truncation(self, mock_launch, mock_isatty):
+        """Test CLI run with prompt truncation"""
+        mock_launch.return_value = True
+        # Create a long prompt that exceeds max_length (100)
+        long_prompt = "a" * 150
+        args = ["script.py", long_prompt]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 0)
+        
+        # Verify prompt was truncated
+        call_args = mock_launch.call_args[0][0]
+        # The URL should contain truncated prompt (100 chars + "...")
+        self.assertIn("aaa", call_args)  # Should still contain some 'a's
+    
+    @patch('sys.stdin.isatty', return_value=True)
+    @patch('gemini_query.browser.BrowserManager.launch')
+    def test_run_special_characters(self, mock_launch, mock_isatty):
+        """Test CLI run with special characters in prompt"""
+        mock_launch.return_value = True
+        special_prompt = "Test with special chars: @#$%^&*(){}[]|\\:;\"'<>,.?/~`"
+        args = ["script.py", special_prompt]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 0)
+        
+        # Verify special characters were encoded
+        call_args = mock_launch.call_args[0][0]
+        self.assertIn("prompt=", call_args)
+        # Original special characters should not appear in the encoded URL
+        encoded_part = call_args.split("prompt=")[1]
+        self.assertNotIn("@", encoded_part)
+        self.assertNotIn("&", encoded_part)
+        self.assertNotIn("#", encoded_part)
+    
+    @patch('sys.stdin.isatty', return_value=True)
+    @patch('gemini_query.browser.BrowserManager.launch')
+    def test_run_japanese_characters(self, mock_launch, mock_isatty):
+        """Test CLI run with Japanese characters"""
+        mock_launch.return_value = True
+        japanese_prompt = "こんにちは世界、これはテストです"
+        args = ["script.py", japanese_prompt]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 0)
+        
+        # Verify Japanese characters were encoded
+        call_args = mock_launch.call_args[0][0]
+        self.assertIn("prompt=", call_args)
+        # Original Japanese characters should not appear in the encoded URL
+        encoded_part = call_args.split("prompt=")[1]
+        self.assertNotIn("こんにちは", encoded_part)
+    
+    def test_component_initialization(self):
+        """Test that all components are properly initialized"""
+        self.assertIsNotNone(self.cli.config)
+        self.assertIsNotNone(self.cli.input_processor)
+        self.assertIsNotNone(self.cli.url_generator)
+        self.assertIsNotNone(self.cli.browser_manager)
+        self.assertIsNotNone(self.cli.logger)
+    
+    def test_config_propagation(self):
+        """Test that configuration is properly propagated to components"""
+        # Test URL generator has correct base URL
+        self.assertEqual(self.cli.url_generator.base_url, "https://test.example.com")
+        self.assertEqual(self.cli.url_generator.max_length, 100)
+        
+        # Test browser manager has correct config
+        self.assertEqual(self.cli.browser_manager.config.browser_timeout, 5)
+
+
+class TestCLIErrorHandling(unittest.TestCase):
+    """Test CLI error handling scenarios"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        self.cli = GeminiQueryCLI()
+    
+    @patch('gemini_query.input_processor.InputProcessor.get_input_data')
+    def test_input_processor_exception(self, mock_get_input):
+        """Test handling of input processor exceptions"""
+        mock_get_input.side_effect = Exception("Input processing failed")
+        args = ["script.py", "test"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+    
+    @patch('gemini_query.url_generator.URLGenerator.create_url')
+    def test_url_generator_exception(self, mock_create_url):
+        """Test handling of URL generator exceptions"""
+        mock_create_url.side_effect = Exception("URL generation failed")
+        args = ["script.py", "test"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+    
+    @patch('gemini_query.browser.BrowserManager.launch')
+    def test_browser_manager_exception(self, mock_launch):
+        """Test handling of browser manager exceptions"""
+        mock_launch.side_effect = Exception("Browser launch failed")
+        args = ["script.py", "test"]
+        
+        result = self.cli.run(args)
+        
+        self.assertEqual(result, 1)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,5 @@
+[workspace]
+name = "gemini_query"
+description = "Gemini Query CLI workspace"
+namespace = "gemini_query"
+theme = "loose"

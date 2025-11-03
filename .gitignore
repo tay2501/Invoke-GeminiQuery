@@ -1,0 +1,352 @@
+# Gemini Auto Query - Git Ignore Rules
+# Updated for v2.0.0 with comprehensive coverage
+
+# ========================================
+# Python
+# ========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ========================================
+# Virtual Environments
+# ========================================
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+conda-meta/
+.claude/
+.serena/
+
+# ========================================
+# IDE and Editor Files
+# ========================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+.atom/
+.brackets.json
+
+# ========================================
+# Application Specific Files
+# ========================================
+
+# Personal configuration files (keep sample files)
+config.json
+config.local.json
+config.personal.json
+config.dev.json
+config.test.json
+
+# Runtime and temporary files
+temp/
+logs/
+*.log
+*.tmp
+*.temp
+*.pid
+*.lock
+
+# Data and cache files
+cache/
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# ========================================
+# Test and Development Files
+# ========================================
+test_output/
+test_results/
+coverage_reports/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+.tox/
+.nox/
+
+# Performance and profiling
+*.prof
+*.pstats
+profile_results/
+
+# ========================================
+# Browser and Download Files
+# ========================================
+*.crdownload
+*.part
+*.download
+downloads/
+
+# ========================================
+# Operating System Files
+# ========================================
+
+# Windows
+desktop.ini
+*.lnk
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.exe.config
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ========================================
+# Backup and Archive Files
+# ========================================
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+*.swp
+*.tmp
+*~
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ========================================
+# Documentation and Notes
+# ========================================
+# Personal notes (keep public documentation)
+NOTES.md
+TODO.md
+PERSONAL.md
+PRIVATE.md
+personal/
+private/
+notes/
+drafts/
+
+# Generated documentation
+docs/_build/
+docs/build/
+site/
+_site/
+
+# ========================================
+# Development and Debugging
+# ========================================
+debug/
+scratch/
+experiments/
+playground/
+sandbox/
+dev/
+local/
+
+# Debug outputs
+debug.log
+error.log
+trace.log
+*.debug
+
+# ========================================
+# Package Managers and Dependencies
+# ========================================
+
+# pip
+pip-log.txt
+pip-delete-this-directory.txt
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# conda
+.conda/
+
+# npm (if any JavaScript tools are added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ========================================
+# Python Specific
+# ========================================
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Rope
+.ropeproject
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Sphinx
+docs/_build/
+
+# PyBuilder
+target/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# ========================================
+# Security and Sensitive Files
+# ========================================
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+.secrets/
+.env.local
+.env.production
+.env.staging
+credentials.json
+auth.json
+token.json
+
+# ========================================
+# Miscellaneous
+# ========================================
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Temporary files created by editors
+.#*
+\#*#
+.*.swp
+.*.swo
+
+# OS generated files
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# ========================================
+# Project Specific Exclusions
+# ========================================
+# Add any project-specific files to ignore here
+
+# User-specific browser extensions or scripts
+user_scripts/
+custom_scripts/
+
+# Local testing files
+test_local/
+local_test/
+
+# Performance benchmarks
+benchmarks/
+perf_results/

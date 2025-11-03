@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Dependency Injection tests for Gemini Auto Query.
+
+Tests the DI container functionality and component resolution.
+"""
+
+import sys
+import unittest
+from pathlib import Path
+
+# Add src directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+
+from gemini_query.di import DIContainer, ComponentFactory, resolve, reset_container
+from gemini_query.config import AppConfig
+from gemini_query.browser import BrowserManager
+from gemini_query.url_generator import URLGenerator
+from gemini_query.input_processor import InputProcessor
+# Note: GeminiQueryCLI moved to modern Typer-based CLI
+# from gemini_query.cli.main import app
+
+
+class TestDIContainer(unittest.TestCase):
+    """Test DIContainer functionality"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        self.container = DIContainer()
+    
+    def test_register_and_get_singleton(self):
+        """Test singleton registration and retrieval"""
+        config = AppConfig()
+        self.container.register_singleton(AppConfig, config)
+        
+        retrieved = self.container.get(AppConfig)
+        
+        self.assertIs(retrieved, config)
+        
+        # Same instance should be returned
+        retrieved2 = self.container.get(AppConfig)
+        self.assertIs(retrieved, retrieved2)
+    
+    def test_register_and_get_factory(self):
+        """Test factory registration and retrieval"""
+        call_count = 0
+        
+        def create_config():
+            nonlocal call_count
+            call_count += 1
+            return AppConfig()
+        
+        self.container.register_factory(AppConfig, create_config)
+        
+        config1 = self.container.get(AppConfig)
+        config2 = self.container.get(AppConfig)
+        
+        self.assertIsInstance(config1, AppConfig)
+        self.assertIsInstance(config2, AppConfig)
+        self.assertIsNot(config1, config2)  # Different instances
+        self.assertEqual(call_count, 2)  # Factory called twice
+    
+    def test_register_and_get_transient(self):
+        """Test transient service registration"""
+        self.container.register_transient(InputProcessor, InputProcessor)
+        
+        processor = self.container.get(InputProcessor)
+        
+        self.assertIsInstance(processor, InputProcessor)
+    
+    def test_unregistered_service_raises_error(self):
+        """Test that requesting unregistered service raises error"""
+        with self.assertRaises(ValueError) as cm:
+            self.container.get(str)  # Unregistered type
+        
+        self.assertIn("Service str is not registered", str(cm.exception))
+    
+    def test_scoped_container(self):
+        """Test scoped container functionality"""
+        self.container.register_transient(InputProcessor, InputProcessor)
+        
+        scoped = self.container.create_scoped()
+        
+        # Same instance within scope
+        processor1 = scoped.get(InputProcessor)
+        processor2 = scoped.get(InputProcessor)
+        self.assertIs(processor1, processor2)
+        
+        # Different scope gets different instance
+        scoped2 = self.container.create_scoped()
+        processor3 = scoped2.get(InputProcessor)
+        self.assertIsNot(processor1, processor3)
+
+
+class TestComponentFactory(unittest.TestCase):
+    """Test ComponentFactory functionality"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        reset_container()  # Reset global container
+    
+    def test_create_container(self):
+        """Test container creation with all components"""
+        container = ComponentFactory.create_container()
+        
+        # Test that all components can be resolved
+        config = container.get(AppConfig)
+        self.assertIsInstance(config, AppConfig)
+        
+        browser_manager = container.get(BrowserManager)
+        self.assertIsInstance(browser_manager, BrowserManager)
+        
+        url_generator = container.get(URLGenerator)
+        self.assertIsInstance(url_generator, URLGenerator)
+        
+        input_processor = container.get(InputProcessor)
+        self.assertIsInstance(input_processor, InputProcessor)
+        
+        cli = container.get(GeminiQueryCLI)
+        self.assertIsInstance(cli, GeminiQueryCLI)
+    
+    def test_config_is_singleton(self):
+        """Test that config is registered as singleton"""
+        container = ComponentFactory.create_container()
+        
+        config1 = container.get(AppConfig)
+        config2 = container.get(AppConfig)
+        
+        self.assertIs(config1, config2)
+    
+    def test_components_use_same_config(self):
+        """Test that all components use the same config instance"""
+        container = ComponentFactory.create_container()
+        
+        config = container.get(AppConfig)
+        browser_manager = container.get(BrowserManager)
+        url_generator = container.get(URLGenerator)
+        
+        # Check that components use the same config
+        self.assertIs(browser_manager.config, config)
+        self.assertEqual(url_generator.base_url, config.gemini_url)
+        self.assertEqual(url_generator.max_length, config.max_prompt_length)
+
+
+class TestGlobalDI(unittest.TestCase):
+    """Test global DI functions"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        reset_container()
+    
+    def test_resolve_function(self):
+        """Test global resolve function"""
+        config = resolve(AppConfig)
+        
+        self.assertIsInstance(config, AppConfig)
+    
+    def test_resolve_returns_same_instances(self):
+        """Test that resolve returns consistent instances"""
+        config1 = resolve(AppConfig)
+        config2 = resolve(AppConfig)
+        
+        # Config should be singleton
+        self.assertIs(config1, config2)
+    
+    def test_reset_container(self):
+        """Test container reset functionality"""
+        config1 = resolve(AppConfig)
+        reset_container()
+        config2 = resolve(AppConfig)
+        
+        # After reset, should get a new instance
+        self.assertIsNot(config1, config2)
+
+
+class TestDIIntegration(unittest.TestCase):
+    """Test DI integration with CLI"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        reset_container()
+    
+    def test_cli_with_di(self):
+        """Test CLI creation using DI"""
+        cli = resolve(GeminiQueryCLI)
+        
+        self.assertIsInstance(cli, GeminiQueryCLI)
+        self.assertIsInstance(cli.config, AppConfig)
+        self.assertIsInstance(cli.browser_manager, BrowserManager)
+        self.assertIsInstance(cli.url_generator, URLGenerator)
+        self.assertIsInstance(cli.input_processor, InputProcessor)
+    
+    def test_cli_components_are_connected(self):
+        """Test that CLI components share dependencies correctly"""
+        cli = resolve(GeminiQueryCLI)
+        
+        # All components should use the same config instance
+        config = resolve(AppConfig)
+        self.assertIs(cli.config, config)
+        self.assertIs(cli.browser_manager.config, config)
+
+
+if __name__ == '__main__':
+    unittest.main()
