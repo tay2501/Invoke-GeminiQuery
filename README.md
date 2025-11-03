@@ -178,20 +178,20 @@ cp configs/config.sample.json configs/config.json
 
 ```bash
 # Basic usage with uv
-uv run gemini-query "What is Python?"
+uv run gemini-query query "What is Python?"
 
 # Short alias
-uv run gq "What is Python?"
+uv run gq query "What is Python?"
 
 # With piped input
-echo "def hello(): print('world')" | uv run gemini-query "Explain this code"
+echo "def hello(): print('world')" | uv run gemini-query query "Explain this code"
 
 # File content
-cat file.txt | uv run gemini-query "Summarize this content"
+cat file.txt | uv run gemini-query query "Summarize this content"
 
 # Development mode (if in virtual environment)
 uv shell
-gemini-query "Hello, Gemini!"
+gemini-query query "Hello, Gemini!"
 ```
 
 ### Option 3: Development Mode
@@ -211,13 +211,13 @@ python main.py "Your question here"
 
 ```bash
 # Direct question
-uv run gemini-query "What is Python?"
+uv run gemini-query query "What is Python?"
 
 # With verbose output
-uv run gemini-query --verbose "Explain async/await"
+uv run gemini-query query --verbose "Explain async/await"
 
 # Custom config file
-uv run gemini-query --config path/to/config.json "Question"
+uv run gemini-query query --config path/to/config.json "Question"
 
 # Help
 uv run gemini-query --help
@@ -227,13 +227,13 @@ uv run gemini-query --help
 
 ```bash
 # Code review
-git diff | uv run gemini-query "Review these changes"
+git diff | uv run gemini-query query "Review these changes"
 
 # Documentation generation
-uv run gemini-query "Write comprehensive documentation for a REST API"
+uv run gemini-query query "Write comprehensive documentation for a REST API"
 
 # Multi-line input
-cat <<EOF | uv run gemini-query "Analyze this code"
+cat <<EOF | uv run gemini-query query "Analyze this code"
 def fibonacci(n):
     if n <= 1: return n
     return fibonacci(n-1) + fibonacci(n-2)
@@ -529,7 +529,7 @@ window.geminiDebug.test()
 ### Getting Help
 
 1. **Check browser console** for error messages
-2. **Run with verbose flag**: `uv run gemini-query --verbose "Question"`
+2. **Run with verbose flag**: `uv run gemini-query query --verbose "Question"`
 3. **Check logs**: `logs/gemini_query_YYYY-MM-DD.log`
 4. **Test with simple input** to isolate problems
 5. **Verify configuration**: `configs/config.json`
