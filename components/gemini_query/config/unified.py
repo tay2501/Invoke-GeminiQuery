@@ -1,10 +1,17 @@
 """Unified configuration combining all modular components."""
 
+from pathlib import Path
+
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import (
+    BaseSettings,
+    PydanticBaseSettingsSource,
+    SettingsConfigDict,
+)
 
 from .application import ApplicationConfig
 from .browser import BrowserConfig
+from .json_source import JsonConfigSource
 from .network import NetworkConfig
 
 
@@ -19,7 +26,7 @@ class AppConfig(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="forbid"
+        extra="ignore"  # Allow nested configs to handle their own env vars
     )
 
     # Modular configuration components
@@ -78,3 +85,41 @@ class AppConfig(BaseSettings):
     def supported_browsers(self) -> list[str]:
         """Legacy access to supported browsers."""
         return self.browser.supported_browsers
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        """Customize settings sources with JSON config priority.
+
+        Priority order:
+        1. Explicit init values (highest priority)
+        2. configs/config.json (if exists)
+        3. Environment variables
+        4. .env file
+        5. Default values (lowest priority)
+
+        Args:
+            settings_cls: The settings class
+            init_settings: Values passed to __init__
+            env_settings: Environment variables source
+            dotenv_settings: .env file source
+            file_secret_settings: Secret files source
+
+        Returns:
+            Tuple of settings sources in priority order
+        """
+        json_source = JsonConfigSource(settings_cls, Path("configs/config.json"))
+
+        return (
+            init_settings,       # Highest priority
+            json_source,         # configs/config.json
+            env_settings,        # Environment variables
+            dotenv_settings,     # .env file
+            file_secret_settings,  # Lowest priority
+        )

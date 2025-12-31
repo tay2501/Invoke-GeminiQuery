@@ -11,6 +11,7 @@ from rich.table import Table
 from rich.text import Text
 
 # Import from Polylith components
+from gemini_query.cli_app import __version__
 from gemini_query.logging.setup import get_logger, setup_logging
 from gemini_query.utils.errors import ConfigurationError, GeminiQueryError
 
@@ -69,14 +70,14 @@ def main(
     ] = None,
 ) -> None:
     """Advanced CLI for Google Gemini AI with intelligent browser automation.
-    
+
     This tool provides a modern, type-safe command-line interface for interacting
-    with [bold blue]Google Gemini AI[/bold blue] using browser automation and 
+    with [bold blue]Google Gemini AI[/bold blue] using browser automation and
     multiple data transfer methods.
-    
+
     [bold green]Features:[/bold green]
     • Intelligent browser detection and automation
-    • Cross-platform support (Windows, macOS, Linux)  
+    • Cross-platform support (Windows, macOS, Linux)
     • Multiple data transfer methods with fallbacks
     • Rich console output and progress indicators
     • Comprehensive error handling and diagnostics
@@ -158,16 +159,15 @@ def query(
 
     except ConfigurationError as e:
         console.print(f"[red]⚙️  Configuration Error: {e}[/red]")
-        if "not found" in str(e):
-            if Confirm.ask("Would you like to create a sample configuration?"):
-                setup_config()
-        raise typer.Exit(1)
+        if "not found" in str(e) and Confirm.ask("Would you like to create a sample configuration?"):
+            setup_config()
+        raise typer.Exit(1) from e
     except GeminiQueryError as e:
         console.print(f"[red]🔥 Error: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except KeyboardInterrupt:
         console.print("\n[yellow]⏹️  Operation cancelled by user[/yellow]")
-        raise typer.Exit(130)
+        raise typer.Exit(130) from None
 
 @app.command()
 def query_async(
@@ -188,11 +188,9 @@ def query_async(
     verbose: VerboseOption = False,
 ) -> None:
     """Send a query to Gemini AI using asynchronous processing for better performance.
-    
     [bold yellow]⚡ Async Version[/bold yellow] - Provides better performance and resource utilization.
-    
+
     [bold green]Examples:[/bold green]
-    
     • Basic async query:
       [dim]$ gemini-query query-async "What is machine learning?"[/dim]
     

@@ -2,8 +2,8 @@
 
 import asyncio
 import time
+from collections.abc import AsyncContextManager
 from contextlib import asynccontextmanager
-from typing import AsyncContextManager
 
 import httpx
 
@@ -120,9 +120,9 @@ class AsyncQueryProcessor:
                     ),
                     timeout=self.config.network.connection_timeout
                 )
-            except TimeoutError:
+            except TimeoutError as e:
                 struct_logger.error("Concurrent operations timed out")
-                raise GeminiQueryError("Query processing operations timed out")
+                raise GeminiQueryError("Query processing operations timed out") from e
 
             preparation_time = time.time() - start_time
 

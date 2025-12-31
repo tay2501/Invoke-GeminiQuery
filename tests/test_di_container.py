@@ -1,8 +1,7 @@
 """Tests for dependency injection container."""
 
-import pytest
 
-from gemini_query.di.container import Container, create_container
+from gemini_query.di.container import create_container
 
 
 class TestDIContainer:

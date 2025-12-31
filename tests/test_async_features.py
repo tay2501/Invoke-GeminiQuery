@@ -1,11 +1,12 @@
 """Tests for async features and modern browser automation."""
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, Mock, patch
-
 import sys
 from pathlib import Path
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # Skip async tests - async features need to be implemented

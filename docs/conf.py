@@ -89,8 +89,7 @@ autodoc_typehints_description_target = 'documented'
 # Intersphinx mapping
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'typer': ('https://typer.tiangolo.com/', None),
-    'pydantic': ('https://docs.pydantic.dev/', None),
+    'pydantic': ('https://docs.pydantic.dev/latest/', None),
 }
 
 # MyST Parser settings

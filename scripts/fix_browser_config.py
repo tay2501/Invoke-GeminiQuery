@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Browser configuration fix script for Gemini Auto Query
 Automatically detects and configures browser paths
 """
 
-import sys
-import os
 import json
+import os
 import subprocess
-from dataclasses import dataclass, field
-from enum import Enum, auto
+import sys
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Optional
 
 # Windows環境での文字コード設定
 if sys.platform == "win32":
@@ -28,7 +26,7 @@ class Platform(Enum):
     WINDOWS = "win32"
     MACOS = "darwin"
     LINUX = "linux"
-    
+
     @classmethod
     def current(cls) -> 'Platform':
         """現在のプラットフォームを取得"""
@@ -52,7 +50,7 @@ class BrowserInfo:
 def detect_browsers() -> dict[str, BrowserInfo]:
     """システム上で利用可能なブラウザを検出"""
     browsers = {}
-    
+
     match Platform.current():
         case Platform.WINDOWS:
             browsers.update(_detect_windows_browsers())
@@ -60,7 +58,7 @@ def detect_browsers() -> dict[str, BrowserInfo]:
             browsers.update(_detect_macos_browsers())
         case Platform.LINUX:
             browsers.update(_detect_linux_browsers())
-    
+
     return browsers
 
 
@@ -81,13 +79,13 @@ def _detect_windows_browsers() -> dict[str, BrowserInfo]:
             r"C:\Program Files\Microsoft\Edge\Application\msedge.exe"
         ]
     }
-    
+
     for browser_name, paths in browser_paths.items():
         for path in paths:
             if Path(path).exists():
                 browsers[browser_name] = BrowserInfo(name=browser_name, path=path)
                 break
-    
+
     return browsers
 
 
@@ -99,11 +97,11 @@ def _detect_macos_browsers() -> dict[str, BrowserInfo]:
         "Chrome": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
         "Safari": "/Applications/Safari.app/Contents/MacOS/Safari"
     }
-    
+
     for browser_name, path in browser_paths.items():
         if Path(path).exists():
             browsers[browser_name] = BrowserInfo(name=browser_name, path=path)
-    
+
     return browsers
 
 
@@ -115,7 +113,7 @@ def _detect_linux_browsers() -> dict[str, BrowserInfo]:
         "Chrome": "google-chrome",
         "Chromium": "chromium-browser"
     }
-    
+
     for browser_name, command in browser_commands.items():
         try:
             result = subprocess.run(['which', command], capture_output=True, text=True)
@@ -123,7 +121,7 @@ def _detect_linux_browsers() -> dict[str, BrowserInfo]:
                 browsers[browser_name] = BrowserInfo(name=browser_name, path=command)
         except Exception:
             pass
-    
+
     return browsers
 
 
@@ -133,27 +131,27 @@ def fix_config():
     print("Browser Configuration Fix Tool")
     print("=" * 60)
     print()
-    
+
     # Detect browsers
     print("Detecting available browsers...")
     browsers = detect_browsers()
-    
+
     if not browsers:
         print("✗ No browsers detected")
         print("Please install Firefox, Chrome, or Edge and try again")
         return False
-    
+
     print("✓ Found browsers:")
     for i, (name, browser_info) in enumerate(browsers.items(), 1):
         print(f"  {i}. {name}: {browser_info.path}")
-    
+
     print()
-    
+
     # Load current config
     config_path = Path("config.json")
     if config_path.exists():
         try:
-            with open(config_path, 'r', encoding='utf-8') as f:
+            with open(config_path, encoding='utf-8') as f:
                 config = json.load(f)
             print("✓ Current configuration loaded")
         except:
@@ -162,7 +160,7 @@ def fix_config():
     else:
         print("✓ Creating new configuration")
         config = {}
-    
+
     # Choose browser
     if len(browsers) == 1:
         browser_name, browser_info = list(browsers.items())[0]
@@ -171,7 +169,7 @@ def fix_config():
     else:
         print("Multiple browsers detected. Choose one:")
         browser_list = list(browsers.items())
-        
+
         # Auto-select Firefox if available, otherwise first one
         if "Firefox" in browsers:
             browser_name = "Firefox"
@@ -181,7 +179,7 @@ def fix_config():
             browser_name, browser_info = browser_list[0]
             browser_path = browser_info.path
             print(f"✓ Auto-selected {browser_name}: {browser_path}")
-    
+
     # Update configuration
     config.update({
         "gemini_url": "https://aistudio.google.com/prompts/new_chat?model=gemini-2.5-pro-exp-03-25",
@@ -201,7 +199,7 @@ def fix_config():
             "msedge"
         ]
     })
-    
+
     # Save configuration
     try:
         with open(config_path, 'w', encoding='utf-8') as f:

@@ -17,10 +17,8 @@ class BrowserConfig(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="GEMINI_BROWSER_",
-        env_file=".env",
-        env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="forbid"
+        extra="ignore"  # Ignore env vars from other configs
     )
 
     # Browser paths

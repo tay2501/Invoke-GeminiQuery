@@ -5,19 +5,6 @@ API Reference
 
 This section contains the API documentation for Gemini Query.
 
-Components
-----------
-
-.. toctree::
-   :maxdepth: 2
-
-   browser
-   config
-   query
-   logging
-   di
-   utils
-
 Browser Component
 -----------------
 
@@ -88,11 +75,6 @@ Query Component
    :show-inheritance:
 
 .. automodule:: gemini_query.query.input_processor
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. automodule:: gemini_query.query.url_generator
    :members:
    :undoc-members:
    :show-inheritance:

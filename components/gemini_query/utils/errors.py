@@ -71,7 +71,7 @@ class TimeoutError(GeminiQueryError):
 
 
 @contextmanager
-def suppress_and_log(*exceptions: type[Exception]) -> Generator[None, None, None]:
+def suppress_and_log(*exceptions: type[Exception]) -> Generator[None]:
     """Context manager that suppresses specified exceptions and logs them.
 
     EAFP pattern: Try the operation, handle exceptions gracefully.

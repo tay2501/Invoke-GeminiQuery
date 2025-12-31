@@ -159,13 +159,13 @@ def query(
 
     except ConfigurationError as e:
         console.print(f"[red]⚙️  Configuration Error: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except GeminiQueryError as e:
         console.print(f"[red]🔥 Error: {e}[/red]")
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
     except KeyboardInterrupt:
         console.print("\n[yellow]⏹️  Operation cancelled by user[/yellow]")
-        raise typer.Exit(130)
+        raise typer.Exit(130) from None
 
 
 @app.command()
@@ -187,7 +187,7 @@ def setup(
                 expand=False,
             )
         )
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 @app.command()
@@ -204,7 +204,7 @@ def validate(config: ConfigOption = None) -> None:
                 expand=False,
             )
         )
-        raise typer.Exit(1)
+        raise typer.Exit(1) from e
 
 
 if __name__ == "__main__":

@@ -1,80 +1,76 @@
-"""Tests for CLI application with dependency injection."""
+"""Tests for CLI application with Typer framework and dependency injection.
 
-import pytest
-from unittest.mock import patch
+Tests the Typer-based CLI commands, DI container integration,
+and error handling.
+"""
 
-# Note: CLI app is now in bases, not available as module
-# This test needs to be updated to test the actual CLI commands via typer
 import sys
 from pathlib import Path
+
+import pytest
+from typer.testing import CliRunner
+
+# Add bases directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "bases"))
 
 from gemini_query.cli_app.core import app, get_container
 
 
-class TestCLIAppDI:
-    """Test cases for CLI application dependency injection."""
+class TestTyperCLICommands:
+    """Test cases for Typer-based CLI commands."""
 
-    def test_create_app_with_default_profile(self):
-        """Test app creation with default profile."""
-        app = create_app()
+    def test_app_help_displays_correctly(self, cli_runner: CliRunner) -> None:
+        """Test that CLI help message displays without errors."""
+        result = cli_runner.invoke(app, ["--help"])
 
-        assert app is not None
-        assert isinstance(app, CLIApp)
+        assert result.exit_code == 0
+        assert "gemini-query" in result.stdout
+        assert "Advanced CLI for Google Gemini AI" in result.stdout
 
-    def test_create_app_with_custom_profile(self):
-        """Test app creation with custom profile."""
-        app = create_app("test")
+    def test_version_option_displays_version(self, cli_runner: CliRunner) -> None:
+        """Test --version option displays version and exits."""
+        result = cli_runner.invoke(app, ["--version"])
 
-        assert app is not None
-        assert isinstance(app, CLIApp)
+        assert result.exit_code == 0
+        assert "gemini-query version" in result.stdout
 
-    def test_cli_app_initialization(self):
-        """Test that CLI app initializes correctly."""
-        app = CLIApp()
-        assert app is not None
 
-    def test_run_query_basic_functionality(self):
-        """Test run_query method with basic functionality."""
-        app = CLIApp()
+class TestDIContainerIntegration:
+    """Test cases for DI container integration with CLI."""
 
-        # Test run_query doesn't raise exceptions
-        with patch('gemini_query.cli_app.core.console') as mock_console:
-            app.run_query("test query")
+    def test_get_container_creates_singleton(self) -> None:
+        """Test get_container() returns same instance on multiple calls."""
+        # Reset module-level container
+        import gemini_query.cli_app.core
 
-            # Verify some output was generated
-            assert mock_console.print.call_count >= 1
+        gemini_query.cli_app.core.container = None
 
-    def test_run_query_interactive_mode(self):
-        """Test run_query with interactive flag."""
-        app = CLIApp()
+        container1 = get_container()
+        container2 = get_container()
 
-        with patch('gemini_query.cli_app.core.console') as mock_console:
-            app.run_query("test query", interactive=True)
+        assert container1 is container2
 
-            # Verify output includes interactive mode indication
-            calls = [str(call) for call in mock_console.print.call_args_list]
-            assert any("Interactive mode: True" in call for call in calls)
+        # Cleanup
+        gemini_query.cli_app.core.container = None
 
-    def test_run_query_handles_exceptions(self):
-        """Test that run_query properly handles exceptions."""
-        import typer
+    def test_get_container_returns_configured_container(self) -> None:
+        """Test get_container() returns properly configured Container instance."""
+        # Reset module-level container
+        import gemini_query.cli_app.core
 
-        app = CLIApp()
+        gemini_query.cli_app.core.container = None
 
-        # Mock console.print to raise an exception on the third call
-        with patch('gemini_query.cli_app.core.console') as mock_console:
-            mock_console.print.side_effect = [None, None, Exception("Test error"), None]
+        container = get_container()
 
-            with pytest.raises(typer.Exit):  # typer.Exit raises specific Exit exception
-                app.run_query("test query")
+        # Verify container has necessary providers
+        assert container is not None
+        assert hasattr(container, "query_processor")
+        assert hasattr(container, "browser_manager")
+        assert hasattr(container, "url_generator")
 
-    def test_create_app_uses_di_container(self):
-        """Test that create_app uses DI container."""
-        with patch('gemini_query.di.container.create_container') as mock_create:
-            mock_create.return_value = object()  # Mock container
+        # Cleanup
+        gemini_query.cli_app.core.container = None
 
-            app = create_app("development")
 
-            assert app is not None
-            mock_create.assert_called_once_with("development")
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

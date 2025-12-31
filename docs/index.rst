@@ -9,7 +9,7 @@ Gemini Query Documentation
    :target: https://github.com/gemini-query/gemini-query
    :alt: Version
 
-.. image:: https://img.shields.io/badge/python-3.12+-green.svg
+.. image:: https://img.shields.io/badge/python-3.13+-green.svg
    :target: https://python.org
    :alt: Python Version
 
@@ -71,7 +71,7 @@ Architecture
 * **Dependency Injection**: Loose coupling with container-based dependency management
 * **Type Safety**: Full type hints and static type checking with MyPy
 * **Structured Logging**: Advanced logging with structlog
-* **Modern Python**: Python 3.12+ with latest best practices
+* **Modern Python**: Python 3.13+ with latest best practices
 
 Documentation
 -------------
@@ -83,6 +83,7 @@ Documentation
    installation
    usage
    troubleshooting
+   encoding
 
 .. toctree::
    :maxdepth: 2
@@ -90,6 +91,8 @@ Documentation
 
    architecture
    development
+   testing
+   PROJECT_OVERVIEW
    api/index
 
 .. toctree::

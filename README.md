@@ -2,7 +2,7 @@
 
 🚀 **Advanced Command Line Interface for Google Gemini AI** - Send queries to Google Gemini AI directly from your command line with intelligent browser automation, robust error handling, and modular architecture.
 
-[![Python](https://img.shields.io/badge/python-3.12+-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/python-3.13+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![uv](https://img.shields.io/badge/package_manager-uv-orange.svg)](https://github.com/astral-sh/uv)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
@@ -101,7 +101,7 @@ Learn more: [Polylith Documentation](https://polylith.gitbook.io/)
 
 ### Prerequisites
 
-- **Python 3.12+** - [Download here](https://www.python.org/downloads/)
+- **Python 3.13+** - [Download here](https://www.python.org/downloads/)
 - **uv** - Modern Python package manager ([Installation Guide](https://docs.astral.sh/uv/))
 - **Web Browser** - Firefox (recommended), Chrome, Edge, or Safari
 - **Tampermonkey/Greasemonkey** - Browser extension for userscripts
@@ -123,8 +123,8 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 git clone https://github.com/gemini-query/gemini-query.git
 cd gemini-query
 
-# Install Python 3.12+ (if not already installed)
-uv python install 3.12
+# Install Python 3.13+ (if not already installed)
+uv python install 3.13
 
 # Install project dependencies
 uv sync
@@ -385,8 +385,8 @@ components/gemini_query/
 git clone https://github.com/gemini-query/gemini-query.git
 cd gemini-query
 
-# Install Python 3.12+ with uv
-uv python install 3.12
+# Install Python 3.13+ with uv
+uv python install 3.13
 
 # Install all dependencies (including dev)
 uv sync --all-extras
